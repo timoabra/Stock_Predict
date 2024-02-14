@@ -1,77 +1,74 @@
-import os
-import pandas as pd
+import streamlit as st
 import yfinance as yf
+import pandas as pd
+import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
-import streamlit as st 
 
-def fetch_sp500_data(filename="sp500.csv"):
-    """Fetch S&P 500 data from Yahoo Finance or load from a local file."""
-    if os.path.exists(filename):
-        return pd.read_csv(filename, index_col=0, parse_dates=True)
+# Function to load or fetch the data
+def load_data():
+    if os.path.exists("sp500.csv"):
+        sp500 = pd.read_csv("sp500.csv", index_col=0, parse_dates=True)
     else:
         sp500 = yf.Ticker("^GSPC").history(period="max")
-        sp500.to_csv(filename)
-        return sp500
+        sp500.to_csv("sp500.csv")
+    return sp500
 
-def preprocess_data(sp500):
-    """Preprocess the S&P 500 data for analysis."""
-    # Convert index to datetime and remove unnecessary columns
-    sp500.index = pd.to_datetime(sp500.index)
-    sp500.drop(columns=["Dividends", "Stock Splits"], inplace=True)
-    
-    # Add features for modeling
+# Function to explicitly convert index to DateTimeIndex and adjust timezone
+def ensure_datetime_index_and_timezone(df):
+    df.index = pd.to_datetime(df.index, errors='coerce')
+    df = df[~df.index.isna()]
+    if df.index.tz is not None:
+        df.index = df.index.tz_convert('UTC')
+    else:
+        df.index = df.index.tz_localize('UTC')
+    return df
+
+# Prepare the data for modeling
+def prepare_data(sp500):
     sp500["Tomorrow"] = sp500["Close"].shift(-1)
     sp500["Target"] = (sp500["Tomorrow"] > sp500["Close"]).astype(int)
+    sp500 = sp500.drop(columns=["Dividends", "Stock Splits"]).dropna()
     sp500 = sp500.loc["1990-01-01":].copy()
     return sp500
 
-def add_features(sp500, horizons=[2,5,60,250,1000]):
-    """Add rolling average and trend features to the DataFrame."""
-    for horizon in horizons:
-        rolling_averages = sp500.rolling(horizon).mean()
-        sp500[f"Close_Ratio_{horizon}"] = sp500["Close"] / rolling_averages["Close"]
-        sp500[f"Trend_{horizon}"] = sp500.shift(1).rolling(horizon).sum()["Target"]
-    return sp500
-
-def train_test_split(sp500, test_size=100):
-    """Split the data into train and test sets."""
-    return sp500.iloc[:-test_size], sp500.iloc[-test_size:]
-
-def train_model(train, predictors):
-    """Train the RandomForest model."""
-    model = RandomForestClassifier(n_estimators=100, min_samples_split=100, random_state=1)
+# Prediction function
+def predict(train, test, predictors, model):
     model.fit(train[predictors], train["Target"])
-    return model
+    preds = model.predict_proba(test[predictors])[:,1]
+    preds[preds >= 0.6] = 1
+    preds[preds < 0.6] = 0
+    preds = pd.Series(preds, index=test.index, name="Predictions")
+    combined = pd.concat([test["Target"], preds], axis=1)
+    return combined
 
-def evaluate_model(model, test, predictors):
-    """Evaluate the model's performance."""
-    preds = model.predict(test[predictors])
-    precision = precision_score(test["Target"], preds)
-    print(f"Precision Score: {precision}")
-    return preds
-
-def backtest(sp500, model, predictors, start=2500, step=250):
-    """Perform backtesting with rolling prediction windows."""
-    all_predictions = []
-    for i in range(start, sp500.shape[0], step):
-        train = sp500.iloc[0:i].copy()
-        test = sp500.iloc[i:(i+step)].copy()
-        preds = model.predict(test[predictors])
-        all_predictions.append(pd.Series(preds, index=test.index, name="Predictions"))
-    return pd.concat(all_predictions)
-
-# Main function to orchestrate the data fetching, preprocessing, and modeling
+# Main Streamlit app function
 def main():
-    sp500 = fetch_sp500_data()
-    sp500 = preprocess_data(sp500)
-    sp500 = add_features(sp500)
-    sp500.dropna(subset=sp500.columns[sp500.columns != "Tomorrow"], inplace=True)
-    
-    predictors = ["Close", "Volume", "Open", "High", "Low"] + [f"Close_Ratio_{h}" for h in [2,5,60,250,1000]] + [f"Trend_{h}" for h in [2,5,60,250,1000]]
-    train, test = train_test_split(sp500)
-    model = train_model(train, predictors)
-    evaluate_model(model, test, predictors)
+    st.title("S&P 500 Stock Prediction")
+
+    sp500 = load_data()
+    sp500 = ensure_datetime_index_and_timezone(sp500)
+    prepared_sp500 = prepare_data(sp500)
+
+    if prepared_sp500 is not None:
+        # Adjust here to show the most recent data in the DataFrame
+        recent_data_length = 5  # Number of most recent rows to display
+        if st.button("Show SP500 Data"):
+            st.write(prepared_sp500.tail(recent_data_length))
+
+        if st.button("Plot Closing Prices"):
+            st.line_chart(prepared_sp500['Close'])
+
+        model = RandomForestClassifier(n_estimators=100, min_samples_split=100, random_state=1)
+        predictors = ["Close", "Volume", "Open", "High", "Low"]
+        train = prepared_sp500.iloc[:-100]
+        test = prepared_sp500.iloc[-100:]
+
+        if st.button("Predict"):
+            preds = predict(train, test, predictors, model)
+            precision = precision_score(test["Target"], preds["Predictions"], zero_division=0)
+            st.write(f"Precision: {precision}")
+            st.write(preds)
 
 if __name__ == "__main__":
     main()
