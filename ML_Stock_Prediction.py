@@ -6,13 +6,13 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
 # Function to load or fetch the data
-def load_data():
-    if os.path.exists("sp500.csv"):
-        sp500 = pd.read_csv("sp500.csv", index_col=0, parse_dates=True)
+def load_data(ticker_symbol):
+    if os.path.exists(f"{ticker_symbol}.csv"):
+        data = pd.read_csv(f"{ticker_symbol}.csv", index_col=0, parse_dates=True)
     else:
-        sp500 = yf.Ticker("^GSPC").history(period="max")
-        sp500.to_csv("sp500.csv")
-    return sp500
+        data = yf.Ticker(ticker_symbol).history(period="max")
+        data.to_csv(f"{ticker_symbol}.csv")
+    return data
 
 # Function to explicitly convert index to DateTimeIndex and adjust timezone
 def ensure_datetime_index_and_timezone(df):
@@ -25,12 +25,12 @@ def ensure_datetime_index_and_timezone(df):
     return df
 
 # Prepare the data for modeling
-def prepare_data(sp500):
-    sp500["Tomorrow"] = sp500["Close"].shift(-1)
-    sp500["Target"] = (sp500["Tomorrow"] > sp500["Close"]).astype(int)
-    sp500 = sp500.drop(columns=["Dividends", "Stock Splits"]).dropna()
-    sp500 = sp500.loc["1990-01-01":].copy()
-    return sp500
+def prepare_data(data):
+    data["Tomorrow"] = data["Close"].shift(-1)
+    data["Target"] = (data["Tomorrow"] > data["Close"]).astype(int)
+    data = data.drop(columns=["Dividends", "Stock Splits"]).dropna()
+    data = data.loc["1990-01-01":].copy()
+    return data
 
 # Prediction function
 def predict(train, test, predictors, model):
@@ -46,23 +46,30 @@ def predict(train, test, predictors, model):
 def main():
     st.title("S&P 500 Stock Prediction")
 
-    sp500 = load_data()
-    sp500 = ensure_datetime_index_and_timezone(sp500)
-    prepared_sp500 = prepare_data(sp500)
+    # List of S&P 500 ticker symbols
+    sp500_symbols = [...]  # Replace with your list of symbols
 
-    if prepared_sp500 is not None:
+    # Create a dropdown menu
+    selected_symbol = st.selectbox('Select a stock:', sp500_symbols)
+
+    # Fetch the data for the selected stock
+    data = load_data(selected_symbol)
+    data = ensure_datetime_index_and_timezone(data)
+    prepared_data = prepare_data(data)
+
+    if prepared_data is not None:
         # Adjust here to show the most recent data in the DataFrame
         recent_data_length = 5  # Number of most recent rows to display
-        if st.button("Show SP500 Data"):
-            st.write(prepared_sp500.tail(recent_data_length))
+        if st.button("Show Data"):
+            st.write(prepared_data.tail(recent_data_length))
 
         if st.button("Plot Closing Prices"):
-            st.line_chart(prepared_sp500['Close'])
+            st.line_chart(prepared_data['Close'])
 
         model = RandomForestClassifier(n_estimators=100, min_samples_split=100, random_state=1)
         predictors = ["Close", "Volume", "Open", "High", "Low"]
-        train = prepared_sp500.iloc[:-100]
-        test = prepared_sp500.iloc[-100:]
+        train = prepared_data.iloc[:-100]
+        test = prepared_data.iloc[-100:]
 
         if st.button("Predict"):
             preds = predict(train, test, predictors, model)
