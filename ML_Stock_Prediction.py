@@ -3,6 +3,7 @@ import pandas as pd
 import yfinance as yf
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
+import streamlit as st 
 
 def fetch_sp500_data(filename="sp500.csv"):
     """Fetch S&P 500 data from Yahoo Finance or load from a local file."""
