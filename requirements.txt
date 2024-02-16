@@ -12,3 +12,4 @@ tz
 timezone
 index
 df.index.tz
+df.index
