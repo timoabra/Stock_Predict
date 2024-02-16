@@ -2,24 +2,30 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
+# Updated load_data function
 def load_data():
     file_path = "sp500.csv"
+    today = datetime.now().date()
+
     if os.path.exists(file_path):
         sp500 = pd.read_csv(file_path, index_col=0, parse_dates=True)
-        last_date = sp500.index.max()
-        today = pd.Timestamp.now().normalize()
-        if last_date.date() < today.date():
-            new_data = yf.download("^GSPC", start=last_date + timedelta(days=1), end=today + timedelta(days=1))
+        sp500.index = pd.to_datetime(sp500.index)
+        last_date = sp500.index.max().date()
+
+        if last_date < today:
+            start_date = last_date + pd.Timedelta(days=1)
+            new_data = yf.download("^GSPC", start=start_date.strftime('%Y-%m-%d'), end=today.strftime('%Y-%m-%d'))
             if not new_data.empty:
                 new_data.to_csv(file_path, mode='a', header=False)
-                sp500 = pd.concat([sp500, new_data])
+                sp500 = pd.read_csv(file_path, index_col=0, parse_dates=True)
     else:
         sp500 = yf.download("^GSPC", period="max")
         sp500.to_csv(file_path)
+    
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
@@ -55,8 +61,6 @@ def main():
         - **Plot Closing Prices:** Visualizes the S&P 500 closing prices over time.
         - **Predict:** Uses a machine learning model to predict future price movements.
     """)
-    
-    # The line for displaying the stock image has been removed
     
     sp500 = load_data()
     sp500 = ensure_datetime_index_and_timezone(sp500)
