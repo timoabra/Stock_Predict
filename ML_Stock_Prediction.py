@@ -6,22 +6,24 @@ from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
-# Updated load_data function
+# Enhanced load_data function with improved date parsing
 def load_data():
     file_path = "sp500.csv"
     today = datetime.now().date()
 
     if os.path.exists(file_path):
-        sp500 = pd.read_csv(file_path, index_col=0, parse_dates=True)
-        sp500.index = pd.to_datetime(sp500.index)
+        # Automatically parse the index as dates
+        sp500 = pd.read_csv(file_path, index_col=0, parse_dates=[0])
         last_date = sp500.index.max().date()
 
         if last_date < today:
             start_date = last_date + pd.Timedelta(days=1)
             new_data = yf.download("^GSPC", start=start_date.strftime('%Y-%m-%d'), end=today.strftime('%Y-%m-%d'))
             if not new_data.empty:
+                # Append new data and save without duplicating headers
                 new_data.to_csv(file_path, mode='a', header=False)
-                sp500 = pd.read_csv(file_path, index_col=0, parse_dates=True)
+                # Reload with date parsing to ensure consistency
+                sp500 = pd.read_csv(file_path, index_col=0, parse_dates=[0])
     else:
         sp500 = yf.download("^GSPC", period="max")
         sp500.to_csv(file_path)
@@ -85,3 +87,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
