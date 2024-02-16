@@ -2,10 +2,10 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import os
+from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
-# Function to load or fetch the data
 def load_data():
     if os.path.exists("sp500.csv"):
         sp500 = pd.read_csv("sp500.csv", index_col=0, parse_dates=True)
@@ -14,17 +14,17 @@ def load_data():
         sp500.to_csv("sp500.csv")
     return sp500
 
-# Function to explicitly convert index to DateTimeIndex and adjust timezone
 def ensure_datetime_index_and_timezone(df):
-    df.index = pd.to_datetime(df.index, errors='coerce')
-    df = df[~df.index.isna()]
-    if df.index.tz is not None:
-        df.index = df.index.tz_convert('UTC')
-    else:
+    # Ensure the index is a DatetimeIndex
+    df.index = pd.to_datetime(df.index)
+    
+    # Check if the index has timezone information and adjust accordingly
+    if df.index.tz is None:
         df.index = df.index.tz_localize('UTC')
+    else:
+        df.index = df.index.tz_convert('UTC')
     return df
 
-# Prepare the data for modeling
 def prepare_data(sp500):
     sp500["Tomorrow"] = sp500["Close"].shift(-1)
     sp500["Target"] = (sp500["Tomorrow"] > sp500["Close"]).astype(int)
@@ -32,7 +32,6 @@ def prepare_data(sp500):
     sp500 = sp500.loc["1990-01-01":].copy()
     return sp500
 
-# Prediction function
 def predict(train, test, predictors, model):
     model.fit(train[predictors], train["Target"])
     preds = model.predict_proba(test[predictors])[:,1]
@@ -42,11 +41,10 @@ def predict(train, test, predictors, model):
     combined = pd.concat([test["Target"], preds], axis=1)
     return combined
 
-# Main Streamlit app function
 def main():
     st.title("S&P 500 Stock Prediction")
-
-    # Instructions and usage guidance
+    
+    # Display the instructions and usage guidance at the beginning of the app
     st.markdown("""
         ## Welcome to the S&P 500 Stock Predictor!
         This application leverages historical data to predict future movements of the S&P 500 index. Explore the app to view data insights and make predictions.
