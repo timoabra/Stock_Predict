@@ -11,4 +11,4 @@ strptime.pyx
 tz
 timezone
 index
-
+df.index.tz
