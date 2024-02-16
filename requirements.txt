@@ -5,4 +5,5 @@ yfinance
 scikit-learn
 datetime
 image
-rb
+str
+sp500
