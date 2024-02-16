@@ -6,23 +6,26 @@ from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
-# Enhanced load_data function with improved date parsing
 def load_data():
     file_path = "sp500.csv"
     today = datetime.now().date()
 
     if os.path.exists(file_path):
-        # Automatically parse the index as dates
         sp500 = pd.read_csv(file_path, index_col=0, parse_dates=[0])
-        last_date = sp500.index.max().date()
+        if not isinstance(sp500.index, pd.DatetimeIndex):
+            sp500.index = pd.to_datetime(sp500.index)
+        last_date = sp500.index.max()
+        if pd.isnull(last_date):
+            print("No valid datetime entries found in the index.")
+            return sp500  # Handle this scenario appropriately
+        else:
+            last_date = last_date.to_pydatetime().date()
 
         if last_date < today:
             start_date = last_date + pd.Timedelta(days=1)
             new_data = yf.download("^GSPC", start=start_date.strftime('%Y-%m-%d'), end=today.strftime('%Y-%m-%d'))
             if not new_data.empty:
-                # Append new data and save without duplicating headers
                 new_data.to_csv(file_path, mode='a', header=False)
-                # Reload with date parsing to ensure consistency
                 sp500 = pd.read_csv(file_path, index_col=0, parse_dates=[0])
     else:
         sp500 = yf.download("^GSPC", period="max")
@@ -63,7 +66,7 @@ def main():
         - **Plot Closing Prices:** Visualizes the S&P 500 closing prices over time.
         - **Predict:** Uses a machine learning model to predict future price movements.
     """)
-    
+
     sp500 = load_data()
     sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
@@ -87,4 +90,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
