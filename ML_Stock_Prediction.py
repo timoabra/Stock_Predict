@@ -6,30 +6,24 @@ from datetime import datetime, timedelta
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
-# Updated load_data function to fetch the most recent data
 def load_data():
     file_path = "sp500.csv"
     if os.path.exists(file_path):
         sp500 = pd.read_csv(file_path, index_col=0, parse_dates=True)
         last_date = sp500.index.max()
-        today = pd.Timestamp.now().normalize()  # Get today's date without time
-        
+        today = pd.Timestamp.now().normalize()
         if last_date.date() < today.date():
-            # Fetch new data from last date to today
             new_data = yf.download("^GSPC", start=last_date + timedelta(days=1), end=today + timedelta(days=1))
-            
-            # If new data is available, append it and save
             if not new_data.empty:
                 new_data.to_csv(file_path, mode='a', header=False)
                 sp500 = pd.concat([sp500, new_data])
     else:
         sp500 = yf.download("^GSPC", period="max")
         sp500.to_csv(file_path)
-    
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
-    df.index = pd.to_datetime(df.index, errors='coerce').tz_localize(None)  
+    df.index = pd.to_datetime(df.index, errors='coerce').tz_localize(None)
     df = df[~df.index.isna()]
     return df
 
@@ -62,8 +56,7 @@ def main():
         - **Predict:** Uses a machine learning model to predict future price movements.
     """)
     
-    # Ensure the image path or URL is correct
-    st.image('path_to_your_stock_image.jpg', caption='Visual representation of the stock market')
+    # The line for displaying the stock image has been removed
     
     sp500 = load_data()
     sp500 = ensure_datetime_index_and_timezone(sp500)
