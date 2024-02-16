@@ -7,3 +7,4 @@ datetime
 image
 str
 sp500
+strptime.pyx
