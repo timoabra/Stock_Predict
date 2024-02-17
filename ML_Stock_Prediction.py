@@ -89,7 +89,7 @@ def main():
             preds = predict(train, test, predictors, model)
             st.markdown("### Prediction of Future Market Movements")
             st.markdown("This section predicts whether the S&P 500 index will experience an upward (1) or downward (0) movement the following day. A prediction of '1' suggests a rise with more than 60% confidence, while '0' indicates a lower confidence in upward movement.")
-            st.write("Shows historical prediction as well as predictions to come:"
+            st.write("Shows historical prediction as well as predictions to come:")
             st.write(preds)
 
 if __name__ == "__main__":
