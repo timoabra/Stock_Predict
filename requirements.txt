@@ -33,3 +33,5 @@ script
 subset
 check
 .tolist
+tz
+.tz
