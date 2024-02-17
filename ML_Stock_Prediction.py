@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
+import index 
 
 def load_data():
     if os.path.exists("sp500.csv"):
