@@ -15,17 +15,18 @@ def load_data():
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
-    # Convert without specifying the format but with error handling
+    # Convert index to datetime, coercing errors to NaT
     df.index = pd.to_datetime(df.index, errors='coerce')
     
-    # Drop rows where the index was converted to NaT due to parsing errors
-    df = df.dropna(subset=[df.index.name])
+    # Filter out rows where the index is NaT
+    df = df[df.index.notna()]
     
-    # Now, safely localize or convert to UTC
+    # Now safely localize or convert to UTC
     if df.index.tz is None:
         df.index = df.index.tz_localize('UTC')
     else:
         df.index = df.index.tz_convert('UTC')
+    
     return df
 
 def prepare_data(sp500):
