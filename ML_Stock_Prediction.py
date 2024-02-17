@@ -2,8 +2,6 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from datetime import datetime
-import pytz
 
 def load_data():
     # Fetch the latest data directly from Yahoo Finance
@@ -12,10 +10,12 @@ def load_data():
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
-    # Convert index to datetime with UTC timezone
-    df.index = pd.to_datetime(df.index, errors='coerce').tz_localize('UTC')
-    st.write(datetime(2020, 1, 10, 10, 30, tzinfo=pytz.timezone("EST")))
-    df = df[df.index.notna()]
+    # Correctly handle timezone-aware datetime indices
+    df.index = pd.to_datetime(df.index, errors='coerce')
+    if df.index.tz is None:
+        df.index = df.index.tz_localize('UTC')
+    else:
+        df.index = df.index.tz_convert('UTC')
     return df
 
 def prepare_data(sp500):
@@ -78,4 +78,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
