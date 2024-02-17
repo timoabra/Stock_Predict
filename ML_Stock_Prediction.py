@@ -15,22 +15,18 @@ def load_data():
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
-    # Convert index to datetime, coercing errors to NaT
+    # Ensure the index is a DatetimeIndex
     df.index = pd.to_datetime(df.index, errors='coerce')
 
     # Filter out rows where the index is NaT
     df = df[df.index.notna()]
 
-    # Check if the index is already timezone-aware
-    if not df.index.tz:
-        try:
-            df.index = df.index.tz_localize('UTC')
-        except TypeError:
-            # Handles cases where the index cannot be localized because it's already timezone-aware
-            # Optionally, convert to UTC if it's in another timezone
-            df.index = df.index.tz_convert('UTC')
-    else:
-        # If the index is timezone-aware but not in UTC, convert it to UTC
+    # Robustly check and localize/convert timezone only if necessary
+    if df.index.tzinfo is None:
+        # Localize the index to UTC if it doesn't have timezone information
+        df.index = df.index.tz_localize('UTC')
+    elif str(df.index.tzinfo) != 'UTC':
+        # Convert to UTC if it has timezone information that is not UTC
         df.index = df.index.tz_convert('UTC')
 
     return df
@@ -65,6 +61,7 @@ def main():
     """)
 
     sp500 = load_data()
+    sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
@@ -87,3 +84,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
