@@ -5,7 +5,6 @@ import os
 from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
-import index 
 
 def load_data():
     if os.path.exists("sp500.csv"):
@@ -66,7 +65,6 @@ def main():
     """)
 
     sp500 = load_data()
-    sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
