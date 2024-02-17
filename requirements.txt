@@ -8,7 +8,7 @@ image
 str
 sp500
 strptime.pyx
-tz
+tz_parsed
 timezone
 index
 df.index.tz
