@@ -51,7 +51,7 @@ def main():
     st.image('https://example.com/your_stock_image.jpg', caption='S&P 500 Stock Movement Visualization')
 
     sp500 = load_data()
-    ensure_datetime_index_and_timezone(sp500)
+    sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
