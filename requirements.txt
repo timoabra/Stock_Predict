@@ -20,3 +20,5 @@ ensure_datetime_index_and_timezone
 dropna
 df
 df.dropna
+raise
+np.array
