@@ -15,12 +15,20 @@ def load_data():
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
+    # Ensure the index is a DatetimeIndex
     df.index = pd.to_datetime(df.index, errors='coerce')
+
+    # Filter out rows where the index is NaT
     df = df[df.index.notna()]
-    if not df.index.tz:
+
+    # Robustly check and localize/convert timezone only if necessary
+    if df.index.tzinfo is None:
+        # Localize the index to UTC if it doesn't have timezone information
         df.index = df.index.tz_localize('UTC')
-    else:
+    elif str(df.index.tzinfo) != 'UTC':
+        # Convert to UTC if it has timezone information that is not UTC
         df.index = df.index.tz_convert('UTC')
+
     return df
 
 def prepare_data(sp500):
@@ -45,13 +53,15 @@ def main():
     st.markdown("""
         ## Welcome to the S&P 500 Stock Predictor!
         This application leverages historical data to predict future movements of the S&P 500 index. Explore the app to view data insights and make predictions.
+        
+        **How to use:**
+        - **Show SP500 Data:** Displays the most recent data fetched for the S&P 500.
+        - **Plot Closing Prices:** Visualizes the S&P 500 closing prices over time.
+        - **Predict:** Uses a machine learning model to predict future price movements.
     """)
 
-    # Adding an image to the application
-    # Replace 'https://example.com/your_stock_image.jpg' with the actual path to your stock ticker photo or a valid URL
-    st.image(https://www.investopedia.com/thmb/EKV1TV7PWpWBf16ExuM3DJWcbSg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/SP-500-Index-d04148d29bca4307b412f4fd91741e17.jpg', caption='S&P 500 Stock Movement Visualization')
-
     sp500 = load_data()
+    sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
@@ -74,3 +84,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
