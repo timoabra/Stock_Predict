@@ -3,7 +3,7 @@ import yfinance as yf
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from datetime import datetime
-import pyzt
+import pytz
 
 def load_data():
     # Fetch the latest data directly from Yahoo Finance
