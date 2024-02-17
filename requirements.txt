@@ -24,7 +24,7 @@ raise
 np.array
 datetime
 pd.to_datetime
-date
+Date
 time 
 GET
 key
