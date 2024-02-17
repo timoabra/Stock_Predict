@@ -65,6 +65,7 @@ def main():
              caption='S&P 500 Stock Movement Visualization', use_column_width=True)
 
     sp500 = load_data()
+    sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
@@ -87,8 +88,8 @@ def main():
             # The prediction functionality offers insights into potential future market movements, aiding in investment and financial planning.
             preds = predict(train, test, predictors, model)
             st.markdown("### Prediction of Future Market Movements")
-            st.markdown("Based on historical data and the Random Forest algorithm, this section predicts whether the S&P 500 index will experience an upward (1) or downward (0) movement the following day. A prediction of '1' suggests a rise with more than 60% confidence, while '0' indicates a lower confidence in upward movement.")
-            st.write("Predictions for the next 100 days:")
+            st.markdown("This section predicts whether the S&P 500 index will experience an upward (1) or downward (0) movement the following day. A prediction of '1' suggests a rise with more than 60% confidence, while '0' indicates a lower confidence in upward movement.")
+            st.write("Shows historical prediction as well as predictions to come:"
             st.write(preds)
 
 if __name__ == "__main__":
