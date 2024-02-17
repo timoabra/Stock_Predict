@@ -14,3 +14,4 @@ index
 df.index.tz
 df.index
 format
+strptime
