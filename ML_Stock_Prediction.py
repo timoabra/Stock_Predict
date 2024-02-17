@@ -1,17 +1,11 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import os
-from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import precision_score
 
 def load_data():
-    if os.path.exists("sp500.csv"):
-        sp500 = pd.read_csv("sp500.csv", index_col=0, parse_dates=True)
-    else:
-        sp500 = yf.Ticker("^GSPC").history(period="max")
-        sp500.to_csv("sp500.csv")
+    # Ensure the data is as recent as possible by downloading it directly
+    sp500 = yf.Ticker("^GSPC").history(period="max")
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
@@ -24,6 +18,10 @@ def ensure_datetime_index_and_timezone(df):
     return df
 
 def prepare_data(sp500):
+    # Instruction for data preparation
+    st.markdown("### Data Preparation Section")
+    st.markdown("This section prepares the S&P 500 data for analysis, setting up the target variable and predictors.")
+    
     sp500["Tomorrow"] = sp500["Close"].shift(-1)
     sp500["Target"] = (sp500["Tomorrow"] > sp500["Close"]).astype(int)
     sp500 = sp500.drop(columns=["Dividends", "Stock Splits"]).dropna()
@@ -31,6 +29,10 @@ def prepare_data(sp500):
     return sp500
 
 def predict(train, test, predictors, model):
+    # Instruction for prediction
+    st.markdown("### Prediction Section")
+    st.markdown("This section uses a Random Forest model to predict future movements of the S&P 500 index based on historical data.")
+    
     model.fit(train[predictors], train["Target"])
     preds = model.predict_proba(test[predictors])[:,1]
     preds = (preds >= 0.6).astype(int)  # Convert probabilities to 0 or 1
@@ -47,10 +49,10 @@ def main():
         Use the buttons below to explore the app:
     """)
 
-    # Adding an image to the application
-    st.image('https://media.istockphoto.com/id/523155194/photo/financial-data-on-a-monitor-stock-market-data-on-led.jpg?s=612x612&w=0&k=20&c=_3Rm4QHvucRzhrosmVUPUQoDx8h-E35DijJsbtQS5mY=', 
-             caption='S&P 500 Stock Movement Visualization', use_column_width=True)
-
+    # Instruction for the app overview
+    st.markdown("### Application Overview")
+    st.markdown("This section provides a high-level overview of the application's capabilities, including data loading, visualization, and prediction.")
+    
     sp500 = load_data()
     prepared_sp500 = prepare_data(sp500)
 
@@ -58,8 +60,12 @@ def main():
         if st.button("Show Latest SP500 Data"):
             st.write(prepared_sp500.tail(5))
 
-        if st.button("Plot Daily Closing Prices"):
-            st.line_chart(prepared_sp500['Close'], use_container_width=True)
+        if st.button("Plot Annual Closing Prices"):
+            # Resampling to annual basis and plotting
+            st.markdown("### Annual Closing Prices")
+            st.markdown("This graph displays the annual closing prices of the S&P 500, offering a broader view of its performance over time.")
+            annual_data = prepared_sp500['Close'].resample('Y').mean()
+            st.line_chart(annual_data, use_container_width=True)
 
         model = RandomForestClassifier(n_estimators=100, min_samples_split=100, random_state=1)
         predictors = ["Close", "Volume", "Open", "High", "Low"]
