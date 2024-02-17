@@ -15,10 +15,13 @@ def load_data():
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
-    # Ensure the index is a DatetimeIndex
-    df.index = pd.to_datetime(df.index)
+    # Convert without specifying the format but with error handling
+    df.index = pd.to_datetime(df.index, errors='coerce')
     
-    # Check if the index has timezone information and adjust accordingly
+    # Drop rows where the index was converted to NaT due to parsing errors
+    df = df.dropna(subset=[df.index.name])
+    
+    # Now, safely localize or convert to UTC
     if df.index.tz is None:
         df.index = df.index.tz_localize('UTC')
     else:
@@ -44,7 +47,6 @@ def predict(train, test, predictors, model):
 def main():
     st.title("S&P 500 Stock Prediction")
     
-    # Display the instructions and usage guidance at the beginning of the app
     st.markdown("""
         ## Welcome to the S&P 500 Stock Predictor!
         This application leverages historical data to predict future movements of the S&P 500 index. Explore the app to view data insights and make predictions.
@@ -79,10 +81,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-if __name__ == "__main__":
-  main()
