@@ -4,21 +4,19 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 
 def load_data():
-    # Ensure the data is as recent as possible by downloading it directly
+    # Fetch the latest data directly from Yahoo Finance
     sp500 = yf.Ticker("^GSPC").history(period="max")
+    sp500 = ensure_datetime_index_and_timezone(sp500)
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
-    df.index = pd.to_datetime(df.index, errors='coerce')
+    # Convert index to datetime with UTC timezone
+    df.index = pd.to_datetime(df.index, errors='coerce').tz_localize('UTC')
     df = df[df.index.notna()]
-    if not df.index.tz:
-        df.index = df.index.tz_localize('UTC')
-    else:
-        df.index = df.index.tz_convert('UTC')
     return df
 
 def prepare_data(sp500):
-    # Instruction for data preparation
+    # Add instructions and prepare the data for analysis
     st.markdown("### Data Preparation Section")
     st.markdown("This section prepares the S&P 500 data for analysis, setting up the target variable and predictors.")
     
@@ -29,7 +27,7 @@ def prepare_data(sp500):
     return sp500
 
 def predict(train, test, predictors, model):
-    # Instruction for prediction
+    # Predict future movements with a Random Forest model
     st.markdown("### Prediction Section")
     st.markdown("This section uses a Random Forest model to predict future movements of the S&P 500 index based on historical data.")
     
@@ -49,10 +47,10 @@ def main():
         Use the buttons below to explore the app:
     """)
 
-    # Instruction for the app overview
-    st.markdown("### Application Overview")
-    st.markdown("This section provides a high-level overview of the application's capabilities, including data loading, visualization, and prediction.")
-    
+    # Adding the image back into the application
+    st.image('https://media.istockphoto.com/id/523155194/photo/financial-data-on-a-monitor-stock-market-data-on-led.jpg?s=612x612&w=0&k=20&c=_3Rm4QHvucRzhrosmVUPUQoDx8h-E35DijJsbtQS5mY=', 
+             caption='S&P 500 Stock Movement Visualization', use_column_width=True)
+
     sp500 = load_data()
     prepared_sp500 = prepare_data(sp500)
 
@@ -61,9 +59,7 @@ def main():
             st.write(prepared_sp500.tail(5))
 
         if st.button("Plot Annual Closing Prices"):
-            # Resampling to annual basis and plotting
             st.markdown("### Annual Closing Prices")
-            st.markdown("This graph displays the annual closing prices of the S&P 500, offering a broader view of its performance over time.")
             annual_data = prepared_sp500['Close'].resample('Y').mean()
             st.line_chart(annual_data, use_container_width=True)
 
@@ -79,3 +75,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
