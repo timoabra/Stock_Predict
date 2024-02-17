@@ -57,9 +57,6 @@ def main():
         if st.button("Show SP500 Data"):
             st.write(prepared_sp500.tail(5))
 
-        if st.button("Plot Closing Prices"):
-            st.line_chart(prepared_sp500['Close'])
-
         if st.button("Plot Closing Prices by Year"):
             yearly_data = prepared_sp500['Close'].resample('Y').mean()  # Resample by year and take the mean
             st.line_chart(yearly_data)
@@ -71,8 +68,6 @@ def main():
 
         if st.button("Predict"):
             preds = predict(train, test, predictors, model)
-            precision = precision_score(test["Target"], preds["Predictions"], zero_division=0)
-            st.write(f"Precision: {precision}")
             st.write(preds)
 
 if __name__ == "__main__":
