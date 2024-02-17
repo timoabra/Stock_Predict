@@ -28,3 +28,4 @@ date
 time 
 GET
 key
+module.__dict__
