@@ -15,20 +15,12 @@ def load_data():
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
-    # Ensure the index is a DatetimeIndex
     df.index = pd.to_datetime(df.index, errors='coerce')
-
-    # Filter out rows where the index is NaT
     df = df[df.index.notna()]
-
-    # Robustly check and localize/convert timezone only if necessary
-    if df.index.tzinfo is None:
-        # Localize the index to UTC if it doesn't have timezone information
+    if not df.index.tz:
         df.index = df.index.tz_localize('UTC')
-    elif str(df.index.tzinfo) != 'UTC':
-        # Convert to UTC if it has timezone information that is not UTC
+    else:
         df.index = df.index.tz_convert('UTC')
-
     return df
 
 def prepare_data(sp500):
@@ -41,8 +33,7 @@ def prepare_data(sp500):
 def predict(train, test, predictors, model):
     model.fit(train[predictors], train["Target"])
     preds = model.predict_proba(test[predictors])[:,1]
-    preds[preds >= 0.6] = 1
-    preds[preds < 0.6] = 0
+    preds = (preds >= 0.6).astype(int)  # Convert probabilities to 0 or 1
     preds = pd.Series(preds, index=test.index, name="Predictions")
     combined = pd.concat([test["Target"], preds], axis=1)
     return combined
@@ -53,14 +44,14 @@ def main():
     st.markdown("""
         ## Welcome to the S&P 500 Stock Predictor!
         This application leverages historical data to predict future movements of the S&P 500 index. Explore the app to view data insights and make predictions.
-        
-        **How to use:**
-        - **Show SP500 Data:** Displays the most recent data fetched for the S&P 500.
-        - **Plot Closing Prices:** Visualizes the S&P 500 closing prices over time.
-        - **Predict:** Uses a machine learning model to predict future price movements.
     """)
 
+    # Adding an image to the application
+    # Replace 'https://example.com/your_stock_image.jpg' with the actual path to your stock ticker photo or a valid URL
+    st.image('https://example.com/your_stock_image.jpg', caption='S&P 500 Stock Movement Visualization')
+
     sp500 = load_data()
+    sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
@@ -69,6 +60,10 @@ def main():
 
         if st.button("Plot Closing Prices"):
             st.line_chart(prepared_sp500['Close'])
+
+        if st.button("Plot Closing Prices by Year"):
+            yearly_data = prepared_sp500['Close'].resample('Y').mean()  # Resample by year and take the mean
+            st.line_chart(yearly_data)
 
         model = RandomForestClassifier(n_estimators=100, min_samples_split=100, random_state=1)
         predictors = ["Close", "Volume", "Open", "High", "Low"]
@@ -83,4 +78,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
