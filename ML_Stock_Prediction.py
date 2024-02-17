@@ -49,7 +49,7 @@ def main():
 
     # Adding an image to the application
     # Replace 'https://example.com/your_stock_image.jpg' with the actual path to your stock ticker photo or a valid URL
-    st.image('https://example.com/your_stock_image.jpg', caption='S&P 500 Stock Movement Visualization')
+    st.image(https://www.investopedia.com/thmb/EKV1TV7PWpWBf16ExuM3DJWcbSg=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/SP-500-Index-d04148d29bca4307b412f4fd91741e17.jpg, caption='S&P 500 Stock Movement Visualization')
 
     sp500 = load_data()
     prepared_sp500 = prepare_data(sp500)
