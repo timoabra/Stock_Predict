@@ -2,7 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import os
-from datetime import datetime
+from datetime import index.tz
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
