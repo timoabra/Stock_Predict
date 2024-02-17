@@ -16,3 +16,4 @@ df.index
 format
 strptime
 datime_input
+ensure_datetime_index_and_timezone
