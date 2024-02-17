@@ -51,15 +51,15 @@ def main():
     st.image('https://example.com/your_stock_image.jpg', caption='S&P 500 Stock Movement Visualization')
 
     sp500 = load_data()
+    ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
         if st.button("Show SP500 Data"):
             st.write(prepared_sp500.tail(5))
 
-        if st.button("Plot Closing Prices by Year"):
-            yearly_data = prepared_sp500['Close'].resample('Y').mean()  # Resample by year and take the mean
-            st.line_chart(yearly_data)
+        if st.button("Plot Closing Prices"):
+            st.line_chart(prepared_sp500['Close'])
 
         model = RandomForestClassifier(n_estimators=100, min_samples_split=100, random_state=1)
         predictors = ["Close", "Volume", "Open", "High", "Low"]
