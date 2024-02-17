@@ -30,3 +30,5 @@ GET
 key
 module.__dict__
 script
+subset
+check
