@@ -52,7 +52,6 @@ def main():
              caption='S&P 500 Stock Movement Visualization', use_column_width=True)
 
     sp500 = load_data()
-    sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
