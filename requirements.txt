@@ -41,3 +41,4 @@ DATETIME_PARSE()
 {Date Field} & ""
 st.dataframe
 --no-root
+pip
