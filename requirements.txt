@@ -11,4 +11,25 @@ strptime.pyx
 tz_parsed
 timezone
 index
+df.index.tz
+df.index
+format
+strptime
+datime_input
+ensure_datetime_index_and_timezone
+dropna
+df
+df.dropna
+raise
+np.array
+datetime
+pd.to_datetime
+Date
+time 
+GET
+key
+module.__dict__
+script
+subset
+check
 
