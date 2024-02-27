@@ -11,7 +11,7 @@ def load_data():
     today = datetime.now()
     future_date = today + timedelta(days=1)  # Ensures inclusion of the last available data
     sp500 = yf.Ticker("^GSPC").history(start="1990-01-01", end=future_date.strftime("%Y-%m-%d"))
-  
+    sp500 = ensure_datetime_index_and_timezone(sp500)
     return sp500
 
 def ensure_datetime_index_and_timezone(df):
@@ -65,7 +65,7 @@ def main():
              caption='S&P 500 Stock Movement Visualization', use_column_width=True)
 
     sp500 = load_data()
-
+    sp500 = ensure_datetime_index_and_timezone(sp500)
     prepared_sp500 = prepare_data(sp500)
 
     if prepared_sp500 is not None:
