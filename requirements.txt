@@ -32,4 +32,4 @@ module.__dict__
 script
 subset
 check
-
+ /{project_name}/__init__.py
