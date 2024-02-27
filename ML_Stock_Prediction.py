@@ -1,7 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 from sklearn.ensemble import RandomForestClassifier
 
 def load_data():
