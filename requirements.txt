@@ -130,4 +130,4 @@ yarg==0.1.9
 yfinance==0.2.37
 zipp==3.17.0
 zope.interface==6.1
- /{ML_Stock_Prediction}/__init__.py
+/{ML_Stock_Prediction}/__init__.py
