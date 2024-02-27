@@ -42,3 +42,4 @@ DATETIME_PARSE()
 st.dataframe
 --no-root
 pip
+sklearn.ensemble
